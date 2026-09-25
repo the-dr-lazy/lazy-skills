@@ -1,0 +1,13 @@
+{
+  "name": "lazy-skills",
+  "owner": {
+    "name": "Mohammad Hasani"
+  },
+  "plugins": [
+    {
+      "name": "lazy-skills",
+      "source": "./",
+      "description": "Functional architecture, domain modeling, effect systems, and property-based testing skills with Haskell, TypeScript, and C++ examples."
+    }
+  ]
+}
