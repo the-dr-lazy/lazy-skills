@@ -4,9 +4,9 @@
   "type": "module",
   "description": "Dependencies for type-checking the TypeScript examples in skills/**/*.md",
   "devDependencies": {
-    "@types/node": "^24.0.0",
+    "@types/node": "^26.6.2",
     "effect": "^3.18.0",
     "fast-check": "^4.0.0",
-    "typescript": "^5.9.0"
+    "typescript": "^7.0.2"
   }
 }
