@@ -12,7 +12,7 @@ Toolchain (override with environment variables):
   GHCFLAGS   extra ghc flags, e.g. -Werror=incomplete-patterns
   TS_DIR     directory with node_modules containing typescript, fast-check,
              effect, @types/node
-  CXX        g++ >= 14 (C++23 <expected>)
+  CXX        clang++ >= 19 or g++ >= 14 (C++23 <expected>)
   CXXFLAGS   extra flags, e.g. -I/path/to/rapidcheck/include
 
 Usage: tools/check_examples.py [--lang haskell|typescript|cpp] [paths...]
@@ -105,7 +105,7 @@ def check_haskell(blocks: list[Block], work: Path) -> list[tuple[Block, str]]:
 
 
 def check_cpp(blocks: list[Block], work: Path) -> list[tuple[Block, str]]:
-    cxx = os.environ.get("CXX", "g++")
+    cxx = os.environ.get("CXX", "clang++")
     flags = os.environ.get("CXXFLAGS", "").split()
 
     def one(ix_block):

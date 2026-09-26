@@ -83,15 +83,25 @@ Each skill is a directory with a `SKILL.md` (when to use it, the procedure, a wo
 
 ## Verified examples
 
-Every Haskell, TypeScript, and C++ code block in `skills/**/*.md` (266 blocks at the time of writing) is type-checked by [`tools/check_examples.py`](tools/check_examples.py): GHC 9.10 (`-fno-code`), TypeScript 5.9 (`--strict --noUncheckedIndexedAccess --exactOptionalPropertyTypes`), and GCC 14 (`-std=c++23 -Wall -fsyntax-only`). Blocks with a `main` were also compiled and run while writing the skills, and every property-based test runs green (or fails exactly where the text says it must, as in the "Enterprise Developer from Hell" examples). Each block is self-contained; put `<!-- check:skip -->` on the line before a block that is intentionally not compilable.
+Every Haskell, TypeScript, and C++ code block in `skills/**/*.md` (266 blocks at the time of writing) is type-checked by [`tools/check_examples.py`](tools/check_examples.py): GHC 9.10 (`-fno-code`), TypeScript 5.9 (`--strict --noUncheckedIndexedAccess --exactOptionalPropertyTypes`), and Clang 21 (`-std=c++23 -Wall -fsyntax-only`). Blocks with a `main` were also compiled and run while writing the skills, and every property-based test runs green (or fails exactly where the text says it must, as in the "Enterprise Developer from Hell" examples). Each block is self-contained; put `<!-- check:skip -->` on the line before a block that is intentionally not compilable.
 
-With Nix (flakes enabled):
+### Development environment
+
+The toolchain (GHC 9.10 with every imported package, Clang 21 with RapidCheck, Node.js 22, Python 3) is declared in [`devenv.nix`](devenv.nix). With [devenv](https://devenv.sh/getting-started/) and [direnv](https://direnv.net/) installed:
 
 ```bash
-nix develop path:./tools --command bash -c 'npm install --prefix tools/ts && python3 tools/check_examples.py'
+direnv allow
 ```
 
-Without Nix: install GHC with `QuickCheck hedgehog containers mtl free polysemy polysemy-plugin effectful effectful-th lens optics aeson text time`, GCC ≥ 14 with RapidCheck, and Node.js ≥ 20; run `npm install --prefix tools/ts`; then `GHC=… CXX=… CXXFLAGS=-I/path/to/rapidcheck/include python3 tools/check_examples.py`. Optional: `GHCFLAGS="-Werror=incomplete-patterns"`.
+Entering the directory then loads the shell, installs the TypeScript dependencies into `tools/ts`, and installs the git hooks. Without direnv, use `devenv shell`. The shell provides:
+
+- `check-skills` — validates every skill: frontmatter (`name` matches the directory, is lowercase-hyphenated and ≤ 64 characters; `description` is non-empty, ≤ 1024 characters, and has no XML tags; no unknown keys), `SKILL.md` under 500 lines, balanced code fences, relative links that resolve, valid `.claude-plugin/*.json`, and every skill linked from this README ([`tools/check_skills.py`](tools/check_skills.py)).
+- `check-examples [--lang haskell|typescript|cpp] [paths...]` — type-checks the code blocks. Optional: `GHCFLAGS="-Werror=incomplete-patterns"`.
+- `devenv test` — runs every git hook on every file.
+
+The pre-commit hook runs `check-skills`, `check-examples` on the staged Markdown files, `check-json`, `actionlint`, and `nixfmt`. CI ([`.github/workflows/check.yml`](.github/workflows/check.yml)) runs the same checks on every push to `main` and every pull request.
+
+Without Nix: install GHC with `QuickCheck hedgehog containers mtl free polysemy polysemy-plugin effectful effectful-th lens optics aeson text time`, Clang ≥ 19 (or GCC ≥ 14) with RapidCheck, Node.js ≥ 20, and Python 3 with PyYAML; run `npm install --prefix tools/ts`; then `python3 tools/check_skills.py` and `GHC=… CXX=… CXXFLAGS=-I/path/to/rapidcheck/include python3 tools/check_examples.py`.
 
 ## TODO
 
@@ -142,7 +152,7 @@ The skills below exist, but the corresponding page on functional-architecture.or
 
 - [ ] Add `examples.md` (more worked examples in all three languages) to the skills that currently have one example: airtight-abstractions, architecture-as-code, belt-and-suspenders, bidirectional-data-transformations, composable-guis, composition-and-closure, continuations, data-types-a-la-carte, decoupled-by-default, denotational-design, embedded-dsl, event-sourcing, everything-as-a-value, expressive-static-types, formal-verification, functional-programming-languages, immutability, late-decision-making, modularization, pure-functions, trees-that-grow, zipper.
 - [ ] Traverse follow-ups linked from the sources: *Polysemy is fun!* part 2 (interpreters), further *Haskell Unfolder* episodes (falsify, laws, testing without a reference implementation), and Sandy Maguire's other Polysemy internals posts.
-- [ ] Run `tools/check_examples.py` in CI.
+- [x] Run `tools/check_examples.py` in CI.
 - [ ] Add trigger evaluations for the skill descriptions (does the agent pick the right skill for a prompt?).
 - [ ] Consider additional example languages the sources use (F#, OCaml, Clojure, Scala, Rust).
 

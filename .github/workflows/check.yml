@@ -1,0 +1,44 @@
+name: Check skills
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Validate skills and type-check examples
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: cachix/install-nix-action@v31
+
+      # Pull from devenv's and this repo's caches; push when the token is set.
+      - uses: cachix/cachix-action@v16
+        with:
+          name: the-dr-lazy
+          extraPullNames: devenv
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+      - name: Install devenv
+        run: nix profile install nixpkgs#devenv
+
+      - name: Validate skills
+        run: devenv shell -- check-skills
+
+      - name: Type-check examples
+        run: devenv shell -- check-examples
+
+      # Every git hook on every file (includes the two checks above, JSON, nixfmt).
+      - name: Git hooks
+        run: devenv test

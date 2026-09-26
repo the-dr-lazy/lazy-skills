@@ -1,2 +1,6 @@
 tools/ts/node_modules/
 tools/ts/examples-*/
+.devenv*
+devenv.local.nix
+.direnv
+.pre-commit-config.yaml
