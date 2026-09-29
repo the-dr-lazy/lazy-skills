@@ -70,7 +70,7 @@ Each skill is a directory with a `SKILL.md` (when to use it, the procedure, a wo
 | Skill | What it covers |
 |---|---|
 | [designing-with-types](skills/designing-with-types/SKILL.md) | Wlaschin's step-by-step workflow from a primitive-obsessed record to precise types |
-| [names-are-not-type-safety](skills/names-are-not-type-safety/SKILL.md) | **Intrinsic vs extrinsic safety; newtypes as tokens; when a wrapper is only a name** |
+| [names-are-not-type-safety](skills/names-are-not-type-safety/SKILL.md) | **Intrinsic vs extrinsic safety; newtypes as tokens; when a wrapper is only a name; type-alias smells** |
 | [boolean-blindness](skills/boolean-blindness/SKILL.md) | Boolean and algebraic blindness; witnesses instead of booleans ("learning by testing") |
 | [belt-and-suspenders](skills/belt-and-suspenders/SKILL.md) | Two independent guards when a failure cannot be made structurally impossible |
 
@@ -172,6 +172,7 @@ Sources traversed for this repository, grouped as requested. Every skill cites t
 - Scott Wlaschin, *Designing with types* series, F# for Fun and Profit (2013): [Introduction](https://fsharpforfunandprofit.com/posts/designing-with-types-intro/) · [Single case union types](https://fsharpforfunandprofit.com/posts/designing-with-types-single-case-dus/) · [Making illegal states unrepresentable](https://fsharpforfunandprofit.com/posts/designing-with-types-making-illegal-states-unrepresentable/) · [Discovering new concepts](https://fsharpforfunandprofit.com/posts/designing-with-types-discovering-the-domain/) · [Making state explicit](https://fsharpforfunandprofit.com/posts/designing-with-types-representing-states/) · [Constrained strings](https://fsharpforfunandprofit.com/posts/designing-with-types-more-semantic-types/) · [Non-string types](https://fsharpforfunandprofit.com/posts/designing-with-types-non-strings/) · [Conclusion](https://fsharpforfunandprofit.com/posts/designing-with-types-conclusion/) ([series index](https://fsharpforfunandprofit.com/series/designing-with-types/)).
 - Wolf McNally, [*Make Illegal States Unrepresentable*](https://aipatternbook.com/make-illegal-states-unrepresentable) and [*Belt-and-Suspenders*](https://aipatternbook.com/belt-and-suspenders), *Encyclopedia of Agentic Coding Patterns*.
 - David Luposchainsky (quchen), [*Algebraic blindness*](https://github.com/quchen/articles/blob/master/algebraic-blindness.md).
+- Type aliases: Edward Z. Yang, [*On type synonyms*](https://blog.ezyang.com/2011/06/on-type-synonyms/) (2011) · Kowainik, [*Haskell Style Guide*](https://github.com/kowainik/org/blob/main/style-guide.md) · Google, [*C++ Style Guide: Aliases*](https://google.github.io/styleguide/cppguide.html#Aliases).
 - Edsko de Vries & Andres Löh (Well-Typed), [*The Haskell Unfolder, Episode 7: learning by testing*](https://discourse.haskell.org/t/the-haskell-unfolder-episode-7-learning-by-testing/6979) (2023), with the episode's [code](https://github.com/well-typed/unfolder/tree/main/episode007-learning-by-testing).
 
 ### Free monads and algebraic effect systems

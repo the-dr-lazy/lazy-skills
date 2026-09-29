@@ -74,6 +74,7 @@ Beyond the site's list, this collection adds domain-modeling skills — `designi
 | Designing a new service, job, CLI, or UI | `functional-core-imperative-shell`, then `make-illegal-states-unrepresentable`, `parse-dont-validate` |
 | Domain model full of strings, flags, and nullables | `designing-with-types` → `make-illegal-states-unrepresentable`, `smart-constructor`, `boolean-blindness` |
 | "Type-safe" wrappers that do not seem to help | `names-are-not-type-safety` |
+| A type alias that names a concept (`type UserId = Text`) or hides a container | `names-are-not-type-safety` |
 | Untrusted input at a boundary | `parse-dont-validate`, `belt-and-suspenders` |
 | Logic tangled with DB/HTTP/clock; hard to test | `pure-functions`, `functional-core-imperative-shell`, `composable-effects` |
 | Choosing an effect approach or library | `composable-effects` → `free-monads` / `algebraic-effect-systems` |
