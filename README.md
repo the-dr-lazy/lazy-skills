@@ -125,7 +125,7 @@ The skills below exist, but the corresponding page on functional-architecture.or
 **Patterns**
 
 - [ ] **Zipper** — short description only; long form TODO. The skill relies on Huet's paper (outside the provided sources) and *Learn You a Haskell*.
-- [ ] **Continuations** — short description is literally "TODO". Based on FUNARCH 2024 (Congame) and Gonzalez.
+- [ ] **Continuations** — short description is literally "TODO". Based on FUNARCH 2024 (Congame), Gonzalez, and the Racket *Continue* tutorial.
 - [ ] **Use of functional programming languages** — page TODO.
 - [ ] **Expressive static type systems** — page TODO.
 - [ ] **Event Sourcing** — short description only; long form TODO.

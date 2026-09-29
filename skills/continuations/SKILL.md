@@ -26,6 +26,13 @@ The Congame platform (economic studies with multi-round, branching participant f
 
 A common robust design: write the workflow in continuation style, persist the *answers* (events), and rebuild the continuation by replaying them — continuations for readability, `event-sourcing` for durability.
 
+## Lessons from a continuation-based web app (Racket's Continue tutorial)
+
+- **A link can carry its own future.** `send/suspend/dispatch` hands the page generator `embed/url`, which turns a handler (a request-consuming closure) into a URL. Visiting it resumes the application at that handler, not at `start`. Because the handler is a local closure it sees the variables in scope: `show-counter n` links to a handler that calls `show-counter (+ n 1)`, so an interaction accumulates state without a session table, and the Back button falls back to an earlier phase. It also removes the "traffic cop" `start` function that dispatches on the kind of request.
+- **State in closures is per continuation.** In the tutorial's first blog each browser window kept its own blog value; sharing required moving the blog into a mutable model shared by every session. Keep shared state out of the closures.
+- **Persist the model, not the continuations.** The tutorial separates the model behind a module boundary ("we have no long-term interest in things like requests. What we do care about saving is our model"), makes its structures serializable (`#:prefab`), and later moves them into SQL. This matches the durable option in the table above: data outlives the run, continuations are rebuilt.
+- **Resuming re-runs effects.** Reloading a page that mutated state repeats the mutation, the well-known "double-submit" problem. The fix is `redirect/get` after any state-changing request, so a reload lands on a safe URL. Treat every resumption point as one that can be entered again (Back, reload, a duplicated tab): make its effects idempotent or keep them out of the resumable part.
+
 ## Procedure
 
 1. Identify the points where control must leave and later come back (a page, a message round-trip, a user decision, a callback).
@@ -155,5 +162,6 @@ private:
 
 - functional-architecture.org, [Continuations](https://functional-architecture.org/continuations/) (pattern page; upstream TODO).
 - Marc Kaufmann, Bogdan Popa, [Continuations: what have they ever done for us?](https://dl.acm.org/doi/10.1145/3677998.3678223) (FUNARCH 2024, experience report on Congame).
+- Danny Yoo, Jay McCarthy, [Continue: Web Applications in Racket](https://docs.racket-lang.org/continue/) (read from the tutorial's Scribble source in [racket/web-server](https://github.com/racket/web-server/blob/master/web-server-doc/web-server/scribblings/tutorial/continue.scrbl): *Advanced Control Flow*, *Share and Share Alike*, *The Double Submit Error*, *Abstracting the Model*, *A Persistent Model*) — links bound to handlers, per-window state, the persistent model, `redirect/get`.
 - Gabriella Gonzalez, [The Continuation Monad](https://haskellforall.com/2012/12/the-continuation-monad) (2012), [How the continuation monad works](https://haskellforall.com/2014/04/how-continuation-monad-works) (2014), [Breaking from a loop](https://haskellforall.com/2012/07/breaking-from-loop) (2012), [The visitor pattern is essentially the same thing as Church encoding](https://haskellforall.com/2021/01/the-visitor-pattern-is-essentially-same) (2021).
 - Scott Wlaschin, [Designing with types: Single case union types](https://fsharpforfunandprofit.com/posts/designing-with-types-single-case-dus/) — constructors taking success and failure continuations.

@@ -22,10 +22,12 @@ When failure is a **value** in the return type, the type checker makes every cal
 | Collect *all* independent errors | applicative `Validation` | accumulate into an array | accumulate into a vector |
 | Unexpected infrastructure failure | `throwIO` / `fail` in `IO` (never `error`) | `throw` in the shell | exceptions in the shell |
 
+Wlaschin's point about railway-oriented programming is that "just use `Either` with bind" is a tool, not a recipe. The recipe adds `map` for steps that cannot fail, "tee" for steps that return unit, an adapter that turns exceptions into error cases, and parallel combination for validation, so that "there is basically only one way to write the code".
+
 ## Rules
 
-1. **Domain failures are values; infrastructure failures may be exceptions** caught in the shell (`functional-core-imperative-shell`). A "declined payment" is data; "the disk vanished" is exceptional.
-2. **Name errors with a sum type per layer** (`data ParseError = InvalidAge | NegativeAge | InvalidAlive`), not strings — callers can match on them, and adding a case breaks the right code.
+1. **Classify the failure first** (Wlaschin). *Domain errors* are expected by the business process, modeled in the types, and need no diagnostics: `Result` as a glorified boolean. *Panics* leave the system in an unknown state (out of memory, divide by zero, a programmer's oversight); abandon the workflow with an exception caught and logged at the highest level (`functional-core-imperative-shell`). *Infrastructure errors* (a network timeout, an authentication failure) are expected by the architecture but not by the business: sometimes model them, sometimes treat them as panics, and "if in doubt, ask a domain expert". Karpov's rule of thumb agrees: the more common a failure is, and the more attention you want to draw to it, the more it belongs in the type; otherwise an exception works like an implicit short-circuiting monad that nobody has to think about until they need to.
+2. **Name errors with a sum type per operation or boundary** (`data ParseError = InvalidAge | NegativeAge | InvalidAlive`), not strings — callers can match on them, and adding a case breaks the right code. Do not grow it into one application-wide sum (next section).
 3. **Keep the happy path flat.** Bind each step's result in sequence instead of nesting `case`s. In Haskell: a `case` expression can *return a value* inside `do`, and `Left`/`throw` has a polymorphic result type, so the failing branch type-checks as any type (the "trick to avoid deeply-nested error-handling code"). Helper combinators like ``maybe `orDie` "message"`` make it read like prose.
 4. **Short-circuit dependent steps; accumulate independent ones.** Parsing an age before checking it is negative is dependent (monadic). Validating the name and the email of a form is independent — report both (applicative validation).
 5. **Translate at boundaries.** Each module exposes its own error type; convert with `mapError` when crossing into the next layer so internals do not leak (`airtight-abstractions`).
@@ -33,6 +35,31 @@ When failure is a **value** in the return type, the type checker makes every cal
 7. **Early exit from loops** is just `Either`/`ExceptT` short-circuiting — no continuations required.
 
 Done when: every domain failure appears in a return type, nested `case`/`if` pyramids are flattened into sequential binds, independent validations report all errors, and exceptions are caught in exactly one layer.
+
+## The trouble with one big error type
+
+Parsons' argument, in Haskell terms. Chaining `head`, `lookup`, and `parse` needs one `Either` error type, and the tempting answer is an application-wide `AllErrorsEver`. Its problems:
+
+- **The type is too large.** `foo` claims it can fail with `FileNotFound` although it cannot do I/O.
+- **Handling is brittle.** A `case` over the sum needs a `_ -> error "impossible?!"` arm, and a new constructor added elsewhere silently changes what `foo` may return.
+- **Partial handling is invisible.** After `bar` handles `AllParseError` and passes the rest on, its type still contains `AllParseError`; the compiler cannot tell.
+- **Nothing stops the wrong constructor.** `head [] = Left (AllLookupError …)` type-checks.
+
+His conclusion: error types should have a single constructor, combined per function through something open. The options he walks through: nested `Either` with `mapLeft` (order-dependent, boilerplate); classy prisms (`AsHeadError err => …`), which compose but do not decompose, so you cannot remove one handled case; open variants (PureScript, OCaml); and "plucking" constraints, his `plucky` package, which he calls the best approach in Haskell. His caveats: an `ExceptT e IO` stack costs at run time, asynchronous exceptions are not covered, he has not used it in a large codebase, and it assumes comfort with `lens`. In TypeScript, unions already give order-independent composition and decomposition: Effect tracks failures as a union in its error channel, `Data.TaggedError` adds a `_tag` discriminant, and `Effect.catchTag("HttpError", …)` removes the handled case from the type (`Effect<string, HttpError | ValidationError>` becomes `Effect<string, ValidationError>`). Unrecoverable *defects* (`Effect.die`) are a separate category: `catchAll` handles only recoverable errors, and `catchAllCause` also sees defects.
+
+## When not to use `Result`
+
+Wlaschin's "Against Railway-Oriented Programming" lists where it does harm, and it is the counterweight to rule 1:
+
+- **You need diagnostics** (a stack trace, the location of the failure). `Result` is for *expected* control flow, so do not store an exception in one.
+- **You are reinventing try/catch.** Some exceptions always leak, and you handle them at the top of the system anyway.
+- **You need to fail fast.** If the workflow would end in an exception, do not thread a `Result` through it.
+- **No one will see it.** Inside a private module or a small service, a local exception used for early exit (like Python's `StopIteration`) is often clearer than binds through a tree traversal, provided it never escapes the boundary.
+- **No one cares why.** Return an `option` instead of a `FileError` sum that no consumer inspects.
+- **I/O.** Model only the bare minimum the domain needs and let the rest become exceptions. If the I/O is separated from the business logic, the core rarely deals with exceptions anyway.
+- **Performance** (measure first) and **interop** (do not make callers learn `Result`).
+
+In the shell, catch only synchronous exceptions. In Haskell, `catch` at `SomeException` also catches asynchronous ones such as `ThreadKilled` and timeouts. Karpov's guidance, as implemented by `safe-exceptions` and `unliftio`: cleanup (`bracket`, `finally`) runs for both kinds and re-throws, while recovery catches only synchronous exceptions and re-throws the asynchronous ones. That relies on a convention (asynchronous exceptions are wrapped in `SomeAsyncException`), not on anything the compiler checks. Also, `error "foo" + error "bar"` has no defined order: which exception is thrown is unspecified.
 
 ## Example: flat, short-circuiting parsing
 
@@ -132,4 +159,8 @@ Accumulating errors with applicative validation, translating errors between laye
 
 - functional-architecture.org, [Composable Error Handling](https://functional-architecture.org/composable_error_handling/) (pattern page; upstream TODO).
 - Gabriella Gonzalez, [The trick to avoid deeply-nested error-handling code](https://haskellforall.com/2021/05/the-trick-to-avoid-deeply-nested-error) (2021), [errors-1.0: Simplified error handling](https://haskellforall.com/2012/07/errors-10-simplified-error-handling) (2012), [Breaking from a loop](https://haskellforall.com/2012/07/breaking-from-loop) (2012), [Prefer to use fail for IO exceptions](https://haskellforall.com/2019/12/prefer-to-use-fail-for-io-exceptions) (2019), [Worst practices should be hard](https://haskellforall.com/2016/04/worst-practices-should-be-hard) (2016, on `error` and unchecked exceptions).
+- Scott Wlaschin, [Railway Oriented Programming](https://fsharpforfunandprofit.com/rop/) (the talk page, including *Relationship to the Either monad and Kleisli composition*) and [Against Railway-Oriented Programming](https://fsharpforfunandprofit.com/posts/against-railway-oriented-programming/) (2019) (both read from the [site's source](https://github.com/swlaschin/fsharpforfunandprofit.com)) — the ROP recipe, the eight reasons not to use `Result`, and the domain error / panic / infrastructure error classification.
+- Matt Parsons, [The Trouble with Typed Errors](https://www.parsonsmatt.org/2018/11/03/trouble_with_typed_errors.html) (2018, updated 2020; read from the [blog's source](https://github.com/parsonsmatt/parsonsmatt.github.io/blob/master/_posts/2018-11-03-trouble_with_typed_errors.markdown)) — why monolithic error types fail, and composing and decomposing error types.
+- Mark Karpov, [Exceptions tutorial](https://markkarpov.com/tutorial/exceptions.html) (2019, updated 2026; read from the [site's source](https://github.com/mrkkrp/markkarpov.com/blob/master/tutorial/exceptions.md): *The motivation for exceptions*, *Asynchronous exceptions*, *How to avoid catching asynchronous exceptions*) — exceptions versus explicit errors, asynchronous exceptions, `safe-exceptions`.
+- Effect documentation, [Expected Errors](https://effect.website/docs/error-management/expected-errors/) and [Unexpected Errors](https://effect.website/docs/error-management/unexpected-errors/) (read from the [website's source](https://github.com/Effect-TS/website), v3 pages) — error channel as a union, `Data.TaggedError`, `catchTag`, defects.
 - Scott Wlaschin, [Designing with types: Single case union types](https://fsharpforfunandprofit.com/posts/designing-with-types-single-case-dus/) — option, result, and continuation-style failure handling; [Making state explicit](https://fsharpforfunandprofit.com/posts/designing-with-types-representing-states/) — replacing `failwith` with caller-driven handlers.

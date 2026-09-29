@@ -24,7 +24,22 @@ description: Composable effects — make side effects explicit and interchangeab
 | 1 | **Pass capabilities explicitly** — higher-order functions, records of functions ("handles"), interfaces | Any language; a few effects; you want dependency injection without a framework. "Dependency injection? Use a higher-order function." |
 | 2 | **Abstract over the monad with constraints** — mtl classes, tagless final, C++ concepts | Effects should appear in types and be restricted per function; test instances are cheap. |
 | 3 | **Programs as data** — free monads / operational commands | You need to inspect, log, replay, optimize, or sandbox programs, or run them under several interpreters (`free-monads`). |
-| 4 | **Extensible effect systems** — effectful, polysemy, Effect-TS | Many effects combine, handlers are swapped per environment, higher-order effects (bracket, profiling) matter (`algebraic-effect-systems`). |
+| 4 | **Extensible effect systems** — effectful, Bluefin, polysemy, Effect-TS | Many effects combine, handlers are swapped per environment, higher-order effects (bracket, profiling) matter (`algebraic-effect-systems`). |
+
+### Choosing among Haskell effect systems
+
+Bluefin's documentation (its author's comparison) rates approaches on six properties: *mixing effects*, *fine-grained effects* (the type says which), *encapsulation* (handling an effect removes it from the type), *resource safety* (bracketing works), *predictable performance*, and *multishot continuations* (backtracking such as `LogicT`).
+
+| | Mixing | Fine-grained | Encapsulation | Resource safety | Predictable performance | Multishot |
+|---|---|---|---|---|---|---|
+| `IO` | yes | no | no | yes | yes | no |
+| `ST` | state only | state only | yes | no | yes | no |
+| mtl, fused-effects, polysemy ("synthetic") | yes | yes | yes | hard | no: relies on fragile inlining | yes |
+| Bluefin, effectful ("analytic") | yes | yes | yes | yes | yes | no |
+
+*Synthetic* systems build effects from small pieces and interpret them. *Analytic* systems are a thin wrapper around `IO` with a type-level effect index (`newtype Eff es a = UnsafeMkEff (IO a)`), so they inherit `IO`'s predictable performance and bracketing at the price of multishot continuations. Plain `ReaderT`-over-`IO` (Snoyman's design pattern) works well in practice but offers no encapsulation: once in `IO` always in `IO`, and the type does not show that a function has no observable effects.
+
+Bluefin's own twist is **value-level capabilities**: effects are reached through handles passed as arguments and introduced by handlers (`evalModify 0 $ \sn -> …`). Two mutable `Int`s in scope are two distinct values, disambiguated as values rather than at the type level. A `Throw` capability cannot escape the `try` that introduces it, so every Bluefin exception is handled, and in exactly one place, whereas an ordinary exception goes to the nearest matching handler on the stack. README caveat: GHC 9.12.1 and 9.12.2 badly hurt Bluefin's performance (fixed in 9.12.3 and 9.14.1).
 
 ## Procedure
 
@@ -153,4 +168,5 @@ Records of functions (the "handle" pattern), decorating an interpreter with logg
 - Alexis King, [Using types to unit-test in Haskell](https://lexi-lambda.github.io/blog/2016/10/03/using-types-to-unit-test-in-haskell/) (2016) and [Unit testing effectful Haskell with monad-mock](https://lexi-lambda.github.io/blog/2017/06/29/unit-testing-effectful-haskell-with-monad-mock/) (2017) — seams, fakes versus mocks, high- and low-level interfaces.
 - Gabriella Gonzalez, [Algebraic side effects](https://haskellforall.com/2015/03/algebraic-side-effects) (2015), [Why I prefer functional programming](https://haskellforall.com/2020/10/why-i-prefer-functional-programming) (2020), [Scrap your type classes](https://haskellforall.com/2012/05/scrap-your-type-classes) (2012).
 - Wolf McNally, [Side Effect](https://aipatternbook.com/side-effect/), *Encyclopedia of Agentic Coding Patterns* — hidden effects, effect cascades, effects at the wrong layer.
+- Tom Ellis, [Bluefin](https://hackage.haskell.org/package/bluefin) (read the `Bluefin` module documentation and README in the [repository](https://github.com/tomjaguarpaw/bluefin)) — synthetic versus analytic effect systems, the comparison table, value-level capabilities, scoped exceptions. The talks it cites (Alexis King, *Effects for Less*; Michael Snoyman on `ReaderT` and on bracketing) were not fetched, so those points are relayed from Bluefin's documentation.
 - Gabriella Gonzalez, [Why free monads matter](https://haskellforall.com/2012/06/you-could-have-invented-free-monads); Raghu Kaippully, [Polysemy is fun!](https://haskell-explained.gitlab.io/blog/posts/2019/07/28/polysemy-is-cool-part-1/index.html); Sandy Maguire, [Tactics](https://reasonablypolymorphic.com/blog/tactics/); [effectful](https://github.com/haskell-effectful/effectful).
