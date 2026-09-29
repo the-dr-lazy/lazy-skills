@@ -63,7 +63,7 @@ Each skill is a directory with a `SKILL.md` (when to use it, the procedure, a wo
 | [trees-that-grow](skills/trees-that-grow/SKILL.md) | Phase-indexed extensible ADTs | TODO |
 | [data-types-a-la-carte](skills/data-types-a-la-carte/SKILL.md) | The expression problem; coproducts of functors; object algebras | TODO |
 | [smart-constructor](skills/smart-constructor/SKILL.md) | Normalizing, validating constructors behind hidden representations | TODO |
-| [correctness-by-construction](skills/correctness-by-construction/SKILL.md) | Constructive types, typestate, GADTs, machine-checked specifications | TODO |
+| [correctness-by-construction](skills/correctness-by-construction/SKILL.md) | Constructive types, typestate, ghosts of departed proofs (gdp), GADTs, machine-checked specifications | TODO |
 
 ### Domain modeling (beyond the site's list)
 
