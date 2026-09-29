@@ -19,6 +19,9 @@ Diagrams and wiki pages describe the architecture you intended; code is the arch
 | Module boundaries and dependency direction | export lists, package boundaries, vertical module organization | the compiler; dependency-rule tests in CI (e.g. dependency-cruiser, ArchUnit-style checks) |
 | Domain rules | types that make illegal states unrepresentable | the type checker (`make-illegal-states-unrepresentable`) |
 | Data flow between representations | bidirectional transformations (lenses) declared once | the type checker, round-trip properties (`bidirectional-data-transformations`) |
+| Systems, containers, components, and their relationships | a C4 model in a text DSL (Structurizr): one model, many generated views | `validate` and `inspect` in CI (the latter's return code counts the violations shown); diagrams exported to PlantUML, Mermaid, SVG |
+
+A model in a diagram DSL is a *description*, not a check: nothing ties it to the code by default. Structurizr's own "as code" rationale lists drift detection between code and model as a workflow for an AI agent, not as something the tool does. So the last row is the weakest in the table. Keep it honest by generating the model from the code (as in the example below) or by pairing it with the dependency-rule tests above. What the DSL does give: plain text in version control, so diffs and pull requests work, and a clean split between the *model* (content) and *views* (presentation), which makes versions easier to diff. Architecture decision records can live beside it (`!adrs` imports adr-tools, MADR, and log4brains formats). Costs: a steeper learning curve than a drawing tool, and non-coding architects are shut out.
 
 A caution from the other direction: "a sufficiently detailed spec is code." Specifications precise enough to generate systems from have the complexity of code; put the precision into the code and generate the *documentation* from it, not the code from documents.
 
@@ -141,6 +144,7 @@ std::string toDot() {
 ## Sources
 
 - functional-architecture.org, [Architecture as Code](https://functional-architecture.org/aac/) (principle page; upstream TODO).
+- Simon Brown et al., Structurizr documentation: [Why "as code"?](https://docs.structurizr.com/as-code), [ADRs](https://docs.structurizr.com/dsl/adrs), and the CLI pages for [`validate`](https://docs.structurizr.com/cli/validate) and [`inspect`](https://docs.structurizr.com/cli/inspect) (read from the site's [source repository](https://github.com/structurizr/structurizr.github.io)) — models as code for the C4 model, model/view separation, CI validation, and the limits of a hand-written model.
 - Marco Perone, Georgios Karachalias, [Crème de la Crem: Composable Representable Executable Machines](https://dl.acm.org/doi/10.1145/3609025.3609480) (FUNARCH 2023) — state machines that are both executable and representable, generating diagrams from the implementation.
 - Gabriella Gonzalez, [Model-view-controller, Haskell-style](https://haskellforall.com/2014/04/model-view-controller-haskell-style) (2014) — the architecture enforced by one type signature; [Module organization guidelines for Haskell projects](https://haskellforall.com/2021/05/module-organization-guidelines-for) (2021); [A sufficiently detailed spec is code](https://haskellforall.com/2026/03/a-sufficiently-detailed-spec-is-code) (2026).
 - Will Crichton, [Typed Design Patterns for the Functional Era](https://dl.acm.org/doi/10.1145/3609025.3609477) (FUNARCH 2023).

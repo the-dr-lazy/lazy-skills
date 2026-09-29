@@ -11,7 +11,7 @@ An abstraction is **airtight** when a client can observe nothing but what the in
 
 ## Where abstractions leak
 
-- **Structural equality and ordering** on the representation: two equal queues stored differently compare unequal.
+- **Structural equality and ordering** on the representation: two equal queues stored differently compare unequal. Hughes' fix for a search tree: the exported `Eq` is observational equivalence (same contents), while tests that must tell representations apart use structural equality on a hidden representation type behind an exported newtype, or in an `Internals` module that tests import and clients do not.
 - **Derived instances** that construct or deconstruct (`Generic`, `Read`, JSON), and debug output (`Show`) that exposes internals clients then parse.
 - **Exposed constructors / fields**, and in TypeScript, structural typing and `as` casts; in C++, public members, `friend`s, and aggregate initialization.
 - **Partial operations** whose failure modes reveal representation (an exception message, an index error).
@@ -144,5 +144,6 @@ private:
 
 - functional-architecture.org, [Airtight Abstractions](https://functional-architecture.org/abstraction/) (principle page; upstream TODO) and [Denotational Design](https://functional-architecture.org/denotational_design/) ("a methodology to build airtight abstraction barriers").
 - **Alexis King, [Names are not type safety](https://lexi-lambda.github.io/blog/2020/11/01/names-are-not-type-safety/)** (2020) — abstraction boundaries as trust boundaries; derived `Generic`/`Read` instances as holes.
+- John Hughes, [How to Specify It!](https://research.chalmers.se/publication/517894/file/517894_Fulltext.pdf) (2019; read from the author-authorized preprint in Johannes Link's [jqwik port](https://github.com/jlink/how-to-specify-it)), section 7 — two notions of equality for an abstract data type.
 - Alexis King, [Climbing the infinite ladder of abstraction](https://lexi-lambda.github.io/blog/2016/08/11/climbing-the-infinite-ladder-of-abstraction/) (2016).
 - Gabriella Gonzalez, [total-1.0.0: Exhaustive pattern matching using traversals, prisms, and lenses](https://haskellforall.com/2015/01/total-100-exhaustive-pattern-matching) (2015), [Explicit is better than implicit](https://haskellforall.com/2015/10/explicit-is-better-than-implicit) (2015), [Worst practices should be hard](https://haskellforall.com/2016/04/worst-practices-should-be-hard) (2016, "excessive abstraction").

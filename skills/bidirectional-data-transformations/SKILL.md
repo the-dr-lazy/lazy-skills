@@ -34,7 +34,9 @@ Done when: each correspondence between representations is declared exactly once,
 - Updates reach several levels into immutable nested data.
 - Conversions are symmetric and mostly structural.
 
-Reach for something else when the mapping is genuinely one-way (reporting, logs), mostly *computation* rather than *correspondence*, or when the team would pay more for the optics vocabulary than it saves.
+Reach for something else when the mapping is genuinely one-way (reporting, logs), mostly *computation* rather than *correspondence*, or when the team would pay more for the optics vocabulary than it saves. A shallow path is such a case: Elixir ships `Access`, `get_in`, and `put_in`, and pathex's README presents itself as the option with more functionality and speed than those, so try the built-ins first.
+
+**Dynamic data makes optics partial.** On Erlang/Elixir maps and JSON, a "lens" is really a path, and a missing key can be an error, silently skipped, or created. The creating variants (datum's Ω-lenses, optic's `create` option) are, by their own documentation, not "well behaving": the lens laws no longer hold. pathex's `force_set!` likewise builds missing structure. optic's default (non-strict) mode also silently skips containers of an unexpected type. Choose strictness per call site, and property-test the laws only for the strict optics. optic's own criterion for optics that combine "without surprise" is that they are associative and idempotent.
 
 ## Example: one declaration, both directions
 
@@ -139,7 +141,12 @@ bool roundTrips(const Person& p) { return dto.from(dto.to(p)) == p; }
 
 ## Optics libraries
 
-Haskell: [`lens`](https://hackage.haskell.org/package/lens), [`optics`](https://hackage.haskell.org/package/optics) (different design trade-offs; see its *Comparison with `lens`*). Scala: Monocle. F#: Aether. OCaml: ocaml-lens, Jane Street's Accessor. Clojure(Script): active-clojure's `active.clojure.lens`, where record accessors are lenses and records can define projection lenses. TypeScript: optics-ts, monocle-ts, Effect's `Optic`-style APIs. C++: no mainstream library; the lens-as-a-pair-of-functions kernel above is usually enough. Erlang/Elixir: upstream TODO.
+Haskell: [`lens`](https://hackage.haskell.org/package/lens), [`optics`](https://hackage.haskell.org/package/optics) (different design trade-offs; see its *Comparison with `lens`*). Scala: Monocle. F#: Aether. OCaml: ocaml-lens, Jane Street's Accessor. Clojure(Script): active-clojure's `active.clojure.lens`, where record accessors are lenses and records can define projection lenses. TypeScript: optics-ts, monocle-ts, Effect's `Optic`-style APIs. C++: no mainstream library; the lens-as-a-pair-of-functions kernel above is usually enough.
+
+Erlang/Elixir (upstream TODO; the list below was checked against each repository and hex.pm in September 2026, using last release and last commit as the maintenance signal):
+
+- Elixir: [`pathex`](https://github.com/hissssst/pathex) is the maintained choice (hex 2.6.1, August 2025). `path :user / :addresses / 0 / :street` builds a closure that can view, set, update, and delete; paths compile to pattern matches and compose with `~>`. Its README warns that Elixir 1.17 has bugs that block reliable use and that 1.18 emits spurious type-checking warnings for generated code, so pin and test your Elixir version. [`focus`](https://github.com/smpoulsen/focus) offers `Focus.view/set/over` and `~>` composition, but its last release and commit are from October 2021, and pathex's README calls it slow.
+- Erlang: [`optic`](https://github.com/jkrukoff/optic) composes optics over lists, maps, tuples, dicts, sets, arrays, and proplists (hex 3.1.0, April 2019; dormant since). The lens module in [`datum`](https://github.com/fogfish/datum/blob/master/doc/lens.md) implements van Laarhoven lenses with `get`/`put`/`map`, composition and product lenses, and documents the get-put, put-get, and put-put laws; it belongs to a broader library of functional data types and generic programming for Erlang, and the repository's last commit is July 2025. [`erl-lenses`](https://github.com/jlouis/erl-lenses) is a single-file 2012 exploration whose README says it is not ready for large projects: a reference, not a dependency.
 
 ## Related skills
 
@@ -149,4 +156,5 @@ Haskell: [`lens`](https://hackage.haskell.org/package/lens), [`optics`](https://
 
 - functional-architecture.org, [Bidirectional Data Transformations](https://functional-architecture.org/bidirectional_data_transformations/) (published pattern page; *When to reach / not to reach* upstream TODO).
 - Marcus Crestani, Markus Schlegel, Marco Schneider, [Bidirectional Data Transformations](https://dl.acm.org/doi/10.1145/3677998.3678224) (FUNARCH 2024).
+- Library documentation read for the Erlang/Elixir list and the partiality caveats: [pathex](https://github.com/hissssst/pathex) (README; hex.pm release history), [focus](https://github.com/smpoulsen/focus) (README; hex.pm), [optic](https://github.com/jkrukoff/optic) (README on well-behaved optics and the `strict`/`create` options), [datum lens](https://github.com/fogfish/datum/blob/master/doc/lens.md) (lens laws and Ω-lenses), [erl-lenses](https://github.com/jlouis/erl-lenses) (README). Release and commit dates from hex.pm and the default branches, September 2026.
 - Gabriella Gonzalez, [Optics are monoids](https://haskellforall.com/2021/09/optics-are-monoids) (2021), [total-1.0.0: Exhaustive pattern matching using traversals, prisms, and lenses](https://haskellforall.com/2015/01/total-100-exhaustive-pattern-matching) (2015), [What does "isomorphic" mean (in Haskell)?](https://haskellforall.com/2022/10/what-does-isomorphic-mean-in-haskell) (2022), [Explicit is better than implicit](https://haskellforall.com/2015/10/explicit-is-better-than-implicit) (2015).

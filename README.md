@@ -54,7 +54,7 @@ Each skill is a directory with a `SKILL.md` (when to use it, the procedure, a wo
 | [bidirectional-data-transformations](skills/bidirectional-data-transformations/SKILL.md) | Lenses, isos, prisms: one declaration, both directions | Published (partly TODO) |
 | [embedded-dsl](skills/embedded-dsl/SKILL.md) | Deep and shallow embeddings; interpreters; the cost of DSLs | TODO |
 | [composable-effects](skills/composable-effects/SKILL.md) | Making effects explicit and interchangeable; the ladder of approaches | TODO |
-| [composable-error-handling](skills/composable-error-handling/SKILL.md) | Errors as values; flat short-circuiting; accumulation; layer translation | TODO |
+| [composable-error-handling](skills/composable-error-handling/SKILL.md) | Errors as values; open variants first (one type per error, handled errors leave the type); flat short-circuiting; accumulation; layer translation | TODO |
 | [composable-guis](skills/composable-guis/SKILL.md) | UIs as values; Model-View-Update; components composed by functors | TODO |
 | [property-based-testing](skills/property-based-testing/SKILL.md) | Choosing properties, generators, shrinking, model-based testing | TODO |
 | [formal-verification](skills/formal-verification/SKILL.md) | The ladder of rigor; trusted kernels; certifiers; model checking | TODO |
@@ -63,7 +63,7 @@ Each skill is a directory with a `SKILL.md` (when to use it, the procedure, a wo
 | [trees-that-grow](skills/trees-that-grow/SKILL.md) | Phase-indexed extensible ADTs | TODO |
 | [data-types-a-la-carte](skills/data-types-a-la-carte/SKILL.md) | The expression problem; coproducts of functors; object algebras | TODO |
 | [smart-constructor](skills/smart-constructor/SKILL.md) | Normalizing, validating constructors behind hidden representations | TODO |
-| [correctness-by-construction](skills/correctness-by-construction/SKILL.md) | Constructive types, typestate, GADTs, machine-checked specifications | TODO |
+| [correctness-by-construction](skills/correctness-by-construction/SKILL.md) | Constructive types, typestate, ghosts of departed proofs (gdp), GADTs, machine-checked specifications | TODO |
 
 ### Domain modeling (beyond the site's list)
 
@@ -111,12 +111,12 @@ The skills below exist, but the corresponding page on functional-architecture.or
 
 **Principles**
 
-- [ ] **Immutability** — page TODO. Skill currently based on the *Decoupled by Default* draft, Gonzalez, Wlaschin, King.
-- [ ] **Pure Functions** — page TODO. Based on McNally (*Side Effect*) and Gonzalez.
+- [ ] **Immutability** — page TODO. Skill currently based on the *Decoupled by Default* draft, Gonzalez, Wlaschin, King, and Hickey (*The Value of Values*, *Are We There Yet?*).
+- [ ] **Pure Functions** — page TODO. Based on McNally (*Side Effect*), Gonzalez, and Hughes (*Why Functional Programming Matters*).
 - [ ] **Everything as a Value** — draft (reification; functions and Jolie services as first-class values).
-- [ ] **Composition and Closure** — page TODO. Based on Gonzalez's category/functor/scalable-architecture posts.
+- [ ] **Composition and Closure** — page TODO. Based on Gonzalez's category/functor/scalable-architecture posts, Milewski's *Category Theory for Programmers*, Yorgey's *Typeclassopedia*, and Hughes.
 - [ ] **Airtight Abstractions** — page TODO. Based on King and Gonzalez.
-- [ ] **Architecture as Code** — page TODO. Based on FUNARCH papers (Crem, Crichton) and Gonzalez.
+- [ ] **Architecture as Code** — page TODO. Based on FUNARCH papers (Crem, Crichton), Gonzalez, and the Structurizr documentation.
 - [ ] **Decoupled by Default** — draft, currently **German only**; the skill summarizes it in English (re-check against an English version when published).
 - [ ] **Late Decision Making** — draft; the incidents case study stops mid-way (placeholder image and "…").
 - [ ] **Modularization** — page TODO. Based on Gonzalez, King, and FUNARCH (GHC and DDD).
@@ -124,8 +124,8 @@ The skills below exist, but the corresponding page on functional-architecture.or
 
 **Patterns**
 
-- [ ] **Zipper** — short description only; long form TODO. The skill relies on Huet's paper (outside the provided sources).
-- [ ] **Continuations** — short description is literally "TODO". Based on FUNARCH 2024 (Congame) and Gonzalez.
+- [ ] **Zipper** — short description only; long form TODO. The skill relies on Huet's paper (outside the provided sources) and *Learn You a Haskell*.
+- [ ] **Continuations** — short description is literally "TODO". Based on FUNARCH 2024 (Congame), Gonzalez, and the Racket *Continue* tutorial.
 - [ ] **Use of functional programming languages** — page TODO.
 - [ ] **Expressive static type systems** — page TODO.
 - [ ] **Event Sourcing** — short description only; long form TODO.
@@ -134,13 +134,13 @@ The skills below exist, but the corresponding page on functional-architecture.or
 - [ ] **Composable Effects** — page TODO (the published FCIS page links to it).
 - [ ] **Composable Error Handling** — page TODO (the published FCIS page links to it).
 - [ ] **Composable GUI libraries** — page TODO.
-- [ ] **Property-based testing** — page TODO (the skill is based on Wlaschin's complete series).
-- [ ] **Formal Verification** — short description is "TODO". Based on FUNARCH 2024/2025 experience reports.
-- [ ] **Denotational Design** — short description only. The skill relies on Conal Elliott's work (outside the provided sources).
-- [ ] **Parse, don't validate** — page TODO (the skill is based on King's post).
-- [ ] **Trees that grow** — short description only. Relies on Najd & Peyton Jones and Perez (FUNARCH 2023).
-- [ ] **Data types à la carte** — short description only. Relies on Swierstra and on object algebras (outside the provided sources).
-- [ ] **Smart constructor** — page TODO (the skill is based on Wlaschin and King).
+- [ ] **Property-based testing** — page TODO (the skill is based on Wlaschin's complete series, plus Hughes's *How to Specify It!* and falsify's documentation).
+- [ ] **Formal Verification** — short description is "TODO". Based on FUNARCH 2024/2025 experience reports, *Learn TLA+*, and *Functional Programming in Lean*.
+- [ ] **Denotational Design** — short description only. The skill relies on Conal Elliott's work (outside the provided sources); its link to model-based testing comes from Hughes's *How to Specify It!*.
+- [ ] **Parse, don't validate** — page TODO (the skill is based on King's post, with Parsons and a TypeScript walkthrough).
+- [ ] **Trees that grow** — short description only. Relies on Najd & Peyton Jones, Perez (FUNARCH 2023), and the notes in GHC's `Language.Haskell.Syntax.Extension`.
+- [ ] **Data types à la carte** — short description only. Relies on Swierstra and on object algebras (outside the provided sources), plus Maguire's *Better Data Types à la Carte*.
+- [ ] **Smart constructor** — page TODO (the skill is based on Wlaschin, King, Kowainik's mini-patterns, and Karpov).
 - [ ] **Correctness by Construction** — short description is "TODO".
 
 **Elsewhere on the site**

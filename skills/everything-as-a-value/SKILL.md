@@ -134,9 +134,17 @@ std::string renderText(const Chart& c) {
 }
 ```
 
+## Services as values: Jolie
+
+Montesi's Jolie tutorial applies the same idea to architecture. A service's typed interface, its communication technology, and its location are separate declarations. Exposing the calculator over HTTP as well as SODEP means adding an input port, not changing the service; microservices "should be kept decoupled from the implementation details of how data is exchanged". Composition is a primitive. A proxy is a service whose input port `Aggregates` another service's output port: it forwards that service's operations and converts between protocols with no hand-written glue. Aggregation is parametric in the interface, so the aggregated service can evolve without touching the proxy. Even ordering is an operator. Writing `login; sum` makes `sum` available only after `login`, where an object-oriented service would need bookkeeping variables and locks.
+
 ## Trade-offs
 
 Reification costs a type and an interpreter. Choose **data** (an AST) when you need to inspect, optimize, serialize, or interpret the concept in several ways; choose **functions** (the final encoding) when running it is the only interpretation and you want extensibility of new cases for free. The tension between the two is the expression problem (`data-types-a-la-carte`, `trees-that-grow`). Reify what the domain talks about, not every implementation detail: a concept deserves to be first-class when people *reason* about it.
+
+- **Data crosses boundaries; closures don't.** A closure cannot be compared, printed, stored, or sent to another process. If the concept must be inspected, persisted, enqueued, or handed to another team's language, reify it as plain data. Hickey's values "do not need methods": "I can send you values without code."
+- **A class per concept is not a reification.** Hickey's example: two `Person` classes with the same fields in different namespaces are not interoperable even with public getters — "the specificity that you added killed your reuse". Prefer a few generic shapes (records, sums, lists, maps of plain values) that generic code can traverse.
+- **Values make the best interface between subsystems.** Unlike calls into objects, they can be moved, ported to another language, and put on a queue when you later need pipelining or concurrency (`decoupled-by-default`).
 
 ## Related skills
 
@@ -145,4 +153,6 @@ Reification costs a type and an interpreter. Choose **data** (an AST) when you n
 ## Sources
 
 - functional-architecture.org, [Everything as a Value](https://functional-architecture.org/eaav/) (principle page; draft — reification, functions as first-class procedures, Jolie services as first-class values).
+- Rich Hickey, [The Value of Values](https://www.infoq.com/presentations/Value-Values/) (GOTO Copenhagen 2012; read via the [transcript](https://github.com/matthiasn/talk-transcripts/blob/master/Hickey_Rich/ValueOfValuesLong.md)) — values need no methods and can be sent without code; generic values versus one class per concept; values as the best interface (moved, ported, enqueued).
+- Fabrizio Montesi, [Programming Microservices with Jolie, Part 1](https://fmontesi.github.io/2015/02/06/programming-microservices-with-jolie.html) (2015; read from the [blog's source](https://github.com/fmontesi/fmontesi.github.io/blob/master/_posts/2015-02-06-programming-microservices-with-jolie.html)) — interfaces, ports, and protocols as separate declarations; aggregation as a composition primitive; sequencing as an operator.
 - Gabriella Gonzalez, [Data is Code](https://haskellforall.com/2016/04/data-is-code) (2016), [The visitor pattern is essentially the same thing as Church encoding](https://haskellforall.com/2021/01/the-visitor-pattern-is-essentially-same) (2021), [Scrap your type classes](https://haskellforall.com/2012/05/scrap-your-type-classes) (2012), [First-class modules without defaults](https://haskellforall.com/2012/07/first-class-modules-without-defaults) (2012), [Generate web forms from pure functions](https://haskellforall.com/2022/05/generate-web-forms-from-pure-functions) (2022), [Why free monads matter](https://haskellforall.com/2012/06/you-could-have-invented-free-monads) (2012).

@@ -12,6 +12,10 @@ Compilers — and many data pipelines — carry the "same" data through phases: 
 - the **extension field** of each constructor (`XLit p`: a source span when parsed, a type when typechecked, nothing when not needed);
 - an **extension constructor** (`XExt p`: a new case, such as a coercion node that exists only after type checking, or an uninhabited type when the phase adds none).
 
+The problem GHC set out to solve: one syntax tree reused across passes had grown pass-specific warts (`ValBindsOut`, `ConPatOut`, `SigPatOut`). The goals were to capture each variant only in the pass that has it, to let tool writers add their own extensions, and to harmonise the GHC, Template Haskell, and haskell-src-exts trees.
+
+GHC's two placeholders are easy to conflate, so copy the split. An unused extension **point** (a field) gets `NoExtField`, an ordinary inhabited unit type, because some pass must still be able to build the node. An unused extension **constructor** gets `DataConCantHappen`, an uninhabited type eliminated by `dataConCantHappen x = case x of {}`. The same trick retires an *ordinary* constructor from one phase: GHC sets `XOverLabel GhcTc = DataConCantHappen`, since type-checker output never has an `OverLabel`, and functions over that phase match it with `dataConCantHappen x`. The impossible match arm must still be written unless the extension field is strict (GHC issue #18764).
+
 A lighter relative, the **extensible type** pattern (Ivan Perez), applies a type function to *every* component (`Expr f` with `f (Expr f)` children): instantiate `f` with identity for plain trees, with "located" for traceability, or with `Either Error` for error recovery.
 
 ## Procedure
@@ -21,6 +25,7 @@ A lighter relative, the **extensible type** pattern (Ivan Perez), applies a type
 3. Define, per phase, the type of each extension field (unit/"no field" when unused) and of the extension constructor (an empty type when there are no extra cases, so matching on it is trivially total).
 4. Write phase transitions as functions `Expr Parsed -> Either Error (Expr Typed)`; phase-independent functions stay polymorphic in the phase.
 5. Keep the extension types in one place per phase so each phase's shape is readable at a glance.
+6. Decide how child positions carry annotations. GHC makes locations an extension point too: `XRec p (HsExpr p)` replaces `Located (HsExpr p)`, so a pass can attach source spans (GHC), nothing (Template Haskell), types (HIE files), or exact-print annotations; a pass uninterested in locations can define `XRec NoLocated a = a`. Pass-polymorphic code reaches through the wrapper with classes such as `UnXRec` and `MapXRec`.
 
 Done when: one definition serves all phases, each phase can express exactly its own extra information and cases, and illegal cross-phase combinations do not type-check.
 
@@ -151,6 +156,11 @@ int size(const Expr<P>& e) {
 }
 ```
 
+## Pitfalls
+
+- **Printing and branching on the phase need extra constraints.** To pretty-print the tree, GHC must know that its identifiers are `Outputable`, and it sometimes branches on the pass (for instance to print types once they exist). It bundles the constraints as `OutputableBndrId` (`OutputableBndr` plus `IsPass`), and using that constraint in instances generally requires `UndecidableInstances`.
+- **Uninhabited is not unit.** Using an empty type for an unused *field* makes the node unbuildable in that phase; using a unit type for an unused *constructor* leaves a case every consumer must handle.
+
 ## Related skills
 
 `data-types-a-la-carte` (the expression problem more generally) · `make-illegal-states-unrepresentable` (phase-specific fields instead of optional ones) · `correctness-by-construction` · `embedded-dsl` · `bidirectional-data-transformations`
@@ -160,4 +170,5 @@ int size(const Expr<P>& e) {
 - functional-architecture.org, [Trees that grow](https://functional-architecture.org/trees_that_grow/) (pattern; short description, long form upstream TODO).
 - Ivan Perez, [Types that Change: The Extensible Type Design Pattern](https://ivanperez.io/#typesthatchange) (FUNARCH 2023).
 - Jeffrey M. Young, Sylvain Henry, John Ericson, [Stretching the Glasgow Haskell Compiler](https://dl.acm.org/doi/10.1145/3609025.3609476) (FUNARCH 2023) — GHC's architecture, whose AST uses Trees that Grow.
+- GHC developers, [`Language.Haskell.Syntax.Extension`](https://github.com/ghc/ghc/blob/master/compiler/Language/Haskell/Syntax/Extension.hs) (GHC source, read September 2026: *Note [Trees That Grow]*, *Note [Constructor cannot occur]*, *Note [XRec and SrcSpans in the AST]* and the definitions beside them; the note points to the GHC wiki page *Implementing Trees That Grow*, which could not be fetched) — the goals, `NoExtField` versus `DataConCantHappen`, `XRec`, and the instance wrinkle.
 - Further reading (not in the provided source list): Shayan Najd and Simon Peyton Jones, *Trees that Grow*, Journal of Universal Computer Science 23(1), 2017.
