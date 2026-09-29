@@ -116,9 +116,10 @@ main = do
 ```typescript
 import { Context, Effect, Layer, Ref } from "effect";
 
-type Username = string;
-type Password = string;
-type PasswordHash = string;
+// Brands, not aliases: a password and its hash cannot be swapped.
+type Username = string & { readonly __brand: "Username" };
+type Password = string & { readonly __brand: "Password" };
+type PasswordHash = string & { readonly __brand: "PasswordHash" };
 
 class CryptoHash extends Context.Tag("CryptoHash")<
   CryptoHash,
@@ -154,7 +155,7 @@ export const validatePassword = (user: Username, password: Password) =>
 
 // Handlers: chosen at the edge.
 const CryptoHashFake = Layer.succeed(CryptoHash, {
-  makeHash: (p) => Effect.succeed([...p].reverse().join("")), // a test double, NOT a real hash
+  makeHash: (p) => Effect.succeed([...p].reverse().join("") as PasswordHash), // a test double, NOT a real hash
   validateHash: (p, h) => Effect.succeed([...p].reverse().join("") === h),
 });
 
@@ -170,8 +171,8 @@ const KVStoreInMemory = Layer.effect(
 );
 
 const scenario = Effect.gen(function* () {
-  yield* addUser("alyssa", "hunter2");
-  return yield* validatePassword("alyssa", "hunter2");
+  yield* addUser("alyssa" as Username, "hunter2" as Password);
+  return yield* validatePassword("alyssa" as Username, "hunter2" as Password);
 });
 
 export const result: boolean = Effect.runSync(
@@ -182,14 +183,22 @@ export const result: boolean = Effect.runSync(
 **C++** (capability concepts, static dispatch — "tagless final" without higher-kinded types)
 
 ```cpp
+#include <compare>
 #include <concepts>
 #include <map>
 #include <optional>
 #include <string>
 
-using Username = std::string;
-using Password = std::string;
-using PasswordHash = std::string;
+// Distinct types, not aliases: a password and its hash cannot be swapped.
+struct Username {
+  std::string value;
+  auto operator<=>(const Username&) const = default;  // a map key
+};
+struct Password { std::string value; };
+struct PasswordHash {
+  std::string value;
+  bool operator==(const PasswordHash&) const = default;
+};
 
 // Effects as capability concepts: what a component may do, not how.
 template <typename C>
@@ -218,7 +227,7 @@ bool validatePassword(C& crypto, S& store, const Username& user, const Password&
 
 // Handlers: chosen at the edge.
 struct CryptoHashFake {  // a test double, NOT a real hash
-  PasswordHash makeHash(const Password& p) { return {p.rbegin(), p.rend()}; }
+  PasswordHash makeHash(const Password& p) { return {std::string(p.value.rbegin(), p.value.rend())}; }
   bool validateHash(const Password& p, const PasswordHash& h) { return makeHash(p) == h; }
 };
 
@@ -234,8 +243,8 @@ struct KVStoreInMemory {
 bool scenario() {
   CryptoHashFake crypto;
   KVStoreInMemory store;
-  addUser(crypto, store, "alyssa", "hunter2");
-  return validatePassword(crypto, store, "alyssa", "hunter2");
+  addUser(crypto, store, Username{"alyssa"}, Password{"hunter2"});
+  return validatePassword(crypto, store, Username{"alyssa"}, Password{"hunter2"});
 }
 ```
 

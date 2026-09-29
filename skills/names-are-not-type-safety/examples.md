@@ -269,3 +269,255 @@ struct Argument {
   int argumentValue;
 };
 ```
+
+## 5. An alias that hides a container: the multilingual name
+
+`type PermissionName = Multilingual NonEmptyString` welds a domain concept to one container. Any other alias of the same type is interchangeable with it. Once you pick a language, the value is a bare string again. A name in only one language, such as the one a user typed, has no type at all. The fix is to make the concept a type and choose the container at each use site.
+
+**Haskell**
+
+```haskell
+{-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE DerivingStrategies #-}
+import Data.List (find)
+import Data.List.NonEmpty (NonEmpty)
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
+
+type NonEmptyString = NonEmpty Char -- fine: the name restates the right-hand side
+
+data Lang = En | De | Fa deriving stock (Eq, Ord, Show)
+
+-- One reusable container for anything translatable.
+data Multilingual a = Multilingual {fallback :: a, translations :: Map Lang a}
+  deriving stock (Show, Functor, Foldable, Traversable)
+
+localize :: Lang -> Multilingual a -> a
+localize lang m = Map.findWithDefault (fallback m) lang (translations m)
+
+-- Before:
+--   type PermissionName = Multilingual NonEmptyString
+--   type RoleName = Multilingual NonEmptyString -- the same type: they swap silently
+-- and the name a user typed, in one language, is a bare NonEmptyString.
+
+-- After: the concept is a type; the container is chosen where it is used.
+newtype PermissionName = PermissionName NonEmptyString deriving stock (Eq, Show)
+newtype RoleName = RoleName NonEmptyString deriving stock (Eq, Show)
+
+data Permission = Permission {permissionName :: Multilingual PermissionName}
+data Role = Role {roleName :: Multilingual RoleName, rolePermissions :: [Permission]}
+
+-- A name in one language is still a PermissionName, never a RoleName.
+findPermission :: Lang -> PermissionName -> [Permission] -> Maybe Permission
+findPermission lang name = find ((== name) . localize lang . permissionName)
+```
+
+**TypeScript**
+
+```typescript
+type Lang = "en" | "de" | "fa";
+
+// One reusable container for anything translatable.
+type Multilingual<T> = { readonly fallback: T; readonly translations: Partial<Record<Lang, T>> };
+
+const localize = <T,>(lang: Lang, m: Multilingual<T>): T => m.translations[lang] ?? m.fallback;
+
+// Before:
+//   type PermissionName = Multilingual<string>;
+//   type RoleName = Multilingual<string>; // the same type: they swap silently
+// and the name a user typed, in one language, is a bare string.
+
+// After: the concept is a type; the container is chosen where it is used.
+type PermissionName = string & { readonly __brand: "PermissionName" };
+type RoleName = string & { readonly __brand: "RoleName" };
+
+interface Permission { readonly name: Multilingual<PermissionName> }
+export interface Role { readonly name: Multilingual<RoleName>; readonly permissions: readonly Permission[] }
+
+// A name in one language is still a PermissionName, never a RoleName.
+export const findPermission = (lang: Lang, name: PermissionName, ps: readonly Permission[]) =>
+  ps.find((p) => localize(lang, p.name) === name);
+
+// findPermission("en", someRoleName, ps); // error: RoleName is not PermissionName
+```
+
+**C++**
+
+```cpp
+#include <algorithm>
+#include <map>
+#include <optional>
+#include <string>
+#include <vector>
+
+enum class Lang { En, De, Fa };
+
+// One reusable container for anything translatable.
+template <typename T>
+struct Multilingual {
+  T fallback;
+  std::map<Lang, T> translations;
+};
+
+template <typename T>
+const T& localize(Lang lang, const Multilingual<T>& m) {
+  auto it = m.translations.find(lang);
+  return it == m.translations.end() ? m.fallback : it->second;
+}
+
+// Before:
+//   using PermissionName = Multilingual<std::string>;
+//   using RoleName = Multilingual<std::string>;  // the same type: they swap silently
+// and the name a user typed, in one language, is a bare std::string.
+
+// After: the concept is a type; the container is chosen where it is used.
+struct PermissionName {
+  std::string value;
+  bool operator==(const PermissionName&) const = default;
+};
+struct RoleName {
+  std::string value;
+  bool operator==(const RoleName&) const = default;
+};
+
+struct Permission { Multilingual<PermissionName> name; };
+struct Role { Multilingual<RoleName> name; std::vector<Permission> permissions; };
+
+// A name in one language is still a PermissionName, never a RoleName.
+std::optional<Permission> findPermission(Lang lang, const PermissionName& name,
+                                         const std::vector<Permission>& ps) {
+  auto it = std::ranges::find_if(ps, [&](const Permission& p) { return localize(lang, p.name) == name; });
+  if (it == ps.end()) return std::nullopt;
+  return *it;
+}
+```
+
+## 6. Instances and overloads on an alias belong to the underlying type
+
+Behavior cannot be attached to an alias. An instance or overload written "for" it is really for the right-hand side, so every other alias of that type shares it.
+
+**Haskell**
+
+```haskell
+{-# LANGUAGE FlexibleInstances #-}
+import Data.List.NonEmpty (NonEmpty)
+
+class Describe a where
+  describe :: a -> String
+
+type PermissionName = NonEmpty Char
+type RoleName = NonEmpty Char
+
+-- Reads as an instance for permission names; it is `instance Describe (NonEmpty Char)`.
+instance Describe PermissionName where
+  describe _ = "a permission"
+
+-- instance Describe RoleName where ... -- error: duplicate instance declarations
+
+oops :: RoleName -> String
+oops = describe -- compiles, and calls a role "a permission"
+```
+
+An alias instance also overlaps the container's general instance. Without a pragma, every use is an "Overlapping instances" error. With `OVERLAPPING`, generic code over `Multilingual a` stops compiling. With `INCOHERENT`, it compiles, and the answer depends on where the type becomes known:
+
+```haskell
+{-# LANGUAGE FlexibleInstances #-}
+import Data.List.NonEmpty (NonEmpty ((:|)))
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
+
+data Lang = En | De deriving (Eq, Ord, Show)
+
+data Multilingual a = Multilingual {fallback :: a, translations :: Map Lang a}
+
+class Describe a where
+  describe :: a -> String
+
+instance Describe Char where
+  describe c = [c]
+
+instance Describe a => Describe (NonEmpty a) where
+  describe = concatMap describe
+
+instance Describe a => Describe (Multilingual a) where
+  describe m = "translated: " <> describe (fallback m)
+
+type PermissionName = Multilingual (NonEmpty Char)
+
+-- Overlaps the instance above. Without a pragma, `describe p` is an error;
+-- with OVERLAPPING, `describeAll` below is an error; INCOHERENT compiles.
+instance {-# INCOHERENT #-} Describe PermissionName where
+  describe _ = "a permission"
+
+describeAll :: Describe a => [Multilingual a] -> [String]
+describeAll = map describe
+
+main :: IO ()
+main = do
+  let p = Multilingual ('r' :| "ead") Map.empty :: PermissionName
+  print (describe p) -- "a permission"
+  print (describeAll [p]) -- ["translated: read"]: same value, other instance
+```
+
+With newtypes, each concept gets its own instance, and `Multilingual PermissionName` uses the general instance, which calls `PermissionName`'s. Nothing overlaps:
+
+```haskell
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+import Data.List.NonEmpty (NonEmpty)
+
+class Describe a where
+  describe :: a -> String
+
+newtype PermissionName = PermissionName (NonEmpty Char) deriving newtype (Eq, Show)
+newtype RoleName = RoleName (NonEmpty Char) deriving newtype (Eq, Show)
+
+instance Describe PermissionName where
+  describe _ = "a permission"
+
+instance Describe RoleName where
+  describe _ = "a role"
+```
+
+**TypeScript**
+
+```typescript
+type Meters = number;
+type Seconds = number;
+
+// Two overloads that read differently but have the same signature: (x: number) => string.
+function format(x: Meters): string;
+function format(x: Seconds): string;
+function format(x: number): string {
+  return `${x}`; // nothing tells the implementation which one the caller meant
+}
+
+export const ambiguous = format(3); // 3 m or 3 s? Neither the checker nor the code knows.
+
+// Brands are erased at runtime, so to dispatch, carry the distinction in the value.
+type Quantity = { readonly unit: "m"; readonly value: number } | { readonly unit: "s"; readonly value: number };
+
+export const formatQuantity = (q: Quantity): string => `${q.value} ${q.unit}`;
+```
+
+**C++**
+
+```cpp
+#include <string>
+
+namespace alias {
+using Meters = double;
+using Seconds = double;
+
+inline std::string format(Meters m) { return std::to_string(m) + " m"; }
+// inline std::string format(Seconds s) { ... }  // error: redefinition of format (both take a double)
+}  // namespace alias
+
+namespace strong {
+struct Meters { double value; };
+struct Seconds { double value; };
+
+inline std::string format(Meters m) { return std::to_string(m.value) + " m"; }
+inline std::string format(Seconds s) { return std::to_string(s.value) + " s"; }  // a real overload
+}  // namespace strong
+```
