@@ -111,10 +111,10 @@ The skills below exist, but the corresponding page on functional-architecture.or
 
 **Principles**
 
-- [ ] **Immutability** — page TODO. Skill currently based on the *Decoupled by Default* draft, Gonzalez, Wlaschin, King.
-- [ ] **Pure Functions** — page TODO. Based on McNally (*Side Effect*) and Gonzalez.
+- [ ] **Immutability** — page TODO. Skill currently based on the *Decoupled by Default* draft, Gonzalez, Wlaschin, King, and Hickey (*The Value of Values*, *Are We There Yet?*).
+- [ ] **Pure Functions** — page TODO. Based on McNally (*Side Effect*), Gonzalez, and Hughes (*Why Functional Programming Matters*).
 - [ ] **Everything as a Value** — draft (reification; functions and Jolie services as first-class values).
-- [ ] **Composition and Closure** — page TODO. Based on Gonzalez's category/functor/scalable-architecture posts.
+- [ ] **Composition and Closure** — page TODO. Based on Gonzalez's category/functor/scalable-architecture posts, Milewski's *Category Theory for Programmers*, Yorgey's *Typeclassopedia*, and Hughes.
 - [ ] **Airtight Abstractions** — page TODO. Based on King and Gonzalez.
 - [ ] **Architecture as Code** — page TODO. Based on FUNARCH papers (Crem, Crichton) and Gonzalez.
 - [ ] **Decoupled by Default** — draft, currently **German only**; the skill summarizes it in English (re-check against an English version when published).

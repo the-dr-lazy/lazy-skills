@@ -16,6 +16,7 @@ A **side effect** is anything a function does, while running, that is observable
 - **Local reasoning.** A pure function's signature tells the whole story. `total_with_tax` can be read without knowing about the database, logger, cache, or email service. When it quietly writes a row, fires an event, and warms a cache, "the signature lies about the work."
 - **Testing.** Pure code needs no mocks, fixtures, clocks, or teardown; property-based testing becomes natural (`property-based-testing`).
 - **Change.** Pure code can be moved, renamed, cached, parallelized, and recomposed without disturbing external systems.
+- **Purity buys modularity, which is the point.** Hughes calls "no assignment, no side effects" a negative description: it says what functional programming lacks but gives "no yardstick of program quality". What purity buys is the freedom to cut a program anywhere and glue the parts back together. No side effect can change the value of an expression, so evaluation order is irrelevant. Small general parts (`sum = reduce add 0`, `product = reduce multiply 1`) can be tested and reused independently, and a producer of candidates can be separated from the consumer that picks among them.
 - **Laws survive.** Haskell separates *evaluation order* from *effect order*: evaluating an `IO` action does not run it, so algebraic equations keep holding even for effectful code (`composable-effects`). Evaluation-sensitive primitives such as `error` break this — prefer `throwIO`/`fail` in `IO` over `error`.
 
 ## Recognize impurity
@@ -35,6 +36,7 @@ Three recurring failure modes: the **hidden effect** (a pure-looking function th
 3. Turn each hidden output into part of the return value — a new value instead of a mutation, a description of the action instead of performing it (`[Action]`, an event, a command).
 4. Move the fetching and performing into a caller at the edge (`functional-core-imperative-shell`).
 5. Replace the integration test with direct equality and property tests of the pure function.
+6. Look for the general pattern now visible inside it and parameterize what is specific to this use, as Hughes derives `reduce` by boxing the parts of `sum` that are specific to addition. The general piece is reusable and testable on its own; the specific piece stays small.
 
 Done when: the function's result depends only on its parameters, it neither mutates nor performs I/O, and its tests are plain input/output assertions.
 
@@ -117,7 +119,7 @@ Decision decide(const std::function<int(const std::string&)>& fetchScore,
 
 ## In mainstream languages
 
-Nothing enforces purity in TypeScript or C++, so make it a convention the code *shows*: pure functions take `readonly`/`const` inputs and return new values; they import nothing that touches the world; effectful functions are named with verbs and live in the shell. In C++, `constexpr` functions are checked pure-ish by the compiler; `[[nodiscard]]` on pure functions catches ignored results. When briefing an AI agent, "write a pure function that takes X and returns Y" is a far sharper target than "implement the feature".
+Nothing enforces purity in TypeScript or C++, so make it a convention the code *shows*: pure functions take `readonly`/`const` inputs and return new values; they import nothing that touches the world; effectful functions are named with verbs and live in the shell. In C++, `constexpr` functions are checked pure-ish by the compiler; `[[nodiscard]]` on pure functions catches ignored results. When briefing an AI agent, "write a pure function that takes X and returns Y" is a far sharper target than "implement the feature". Hughes' producer/selector split, a generator of many candidates plus a separate consumer that stops early, exists in mainstream languages as lazy sequences (TypeScript generators, C++20 range views). It stays safe only while the producer is pure, since laziness changes when a producer's effects would run.
 
 ## Related skills
 
@@ -127,4 +129,5 @@ Nothing enforces purity in TypeScript or C++, so make it a convention the code *
 
 - functional-architecture.org, [Pure Functions](https://functional-architecture.org/pure_functions/) (principle page; upstream TODO).
 - Wolf McNally, [Side Effect](https://aipatternbook.com/side-effect/), *Encyclopedia of Agentic Coding Patterns*.
+- John Hughes, [Why Functional Programming Matters](https://www.cse.chalmers.se/~rjmh/Papers/whyfp.pdf) (1984 memo; revised versions published 1989 and 1990; read from a mirrored copy) — the "advantages" of purity as a negative description; modularity as the goal; `reduce` derived from `sum`; lazy evaluation separating generator from selector.
 - Gabriella Gonzalez, [Purify code using free monads](https://haskellforall.com/2012/07/purify-code-using-free-monads) (2012), [Equational reasoning](https://haskellforall.com/2013/12/equational-reasoning) (2013), [Algebraic side effects](https://haskellforall.com/2015/03/algebraic-side-effects) (2015), [Prefer to use fail for IO exceptions](https://haskellforall.com/2019/12/prefer-to-use-fail-for-io-exceptions) (2019), [Statements vs Expressions](https://haskellforall.com/2013/07/statements-vs-expressions) (2013), [Sometimes less is more in language design](https://haskellforall.com/2013/08/sometimes-less-is-more-in-language) (2013).
