@@ -85,6 +85,7 @@ After the change, `PermissionName` no longer unifies with a `RoleName` of the sa
 ### When an alias is right
 
 - **Shorthand whose name restates its right-hand side:** `type Parser = Parsec Void Text`, `type State s = StateT s Identity`, `type Lens' s a = Lens s s a a`. Kowainik's style guide allows aliases "only for specializing general types". That condition is necessary but not sufficient: `Multilingual NonEmptyString` specializes a general type too, but `PermissionName` names a domain concept, not a shape.
+- **Function types:** `type Handler = Request -> IO Response`, `type ShowS = String -> String`. These are mostly fine: wrapping a function type in a data type buys little, and two function types rarely get mixed up. The alias hides the parameter names, though, so document it: what each argument means and what the function must guarantee (`-- | Handles one request. Must not throw; failures become 5xx responses.`).
 - **Naming a type that is already distinct:** a TypeScript union or object type (`type Shape = Circle | Square`), a C++ `std::variant`, or a tagged instantiation (`using CustomerId = Id<struct CustomerTag>`).
 - **Module-private convenience:** in function bodies, private sections, or implementation files. Yang's advice is to keep synonyms unexported, as candidates for promotion to real data types.
 - **Constraint synonyms:** `type App m = (MonadReader Env m, MonadIO m)`.
@@ -215,7 +216,7 @@ More examples — a non-empty list as a trusted token vs a constructive type, th
 
 Type aliases:
 
-- **Edward Z. Yang, [On type synonyms](https://blog.ezyang.com/2011/06/on-type-synonyms/) (2011)** — removing container synonyms such as `type CmmActuals = [CmmActual]` from GHC; keep synonyms unexported, as candidates for promotion to data types.
+- **Edward Z. Yang, [On type synonyms](https://blog.ezyang.com/2011/06/on-type-synonyms/) (2011)** — removing container synonyms such as `type CmmActuals = [CmmActual]` from GHC; function-type synonyms are mostly fine if documented; keep other synonyms unexported, as candidates for promotion to data types.
 - Kowainik, [Haskell Style Guide](https://github.com/kowainik/org/blob/main/style-guide.md) (aliases only for specializing general types) and [Haskell mini-patterns handbook](https://kowainik.github.io/posts/haskell-mini-patterns) (2020), *Newtype* (`type WorkerId = UUID`).
 - Julian Ospald, [Fixing 'FilePath' in Haskell](https://hasufell.github.io/posts/2022-06-29-fixing-haskell-filepaths.html) (2022) — `type FilePath = String` replaced by `newtype OsPath`.
 - GHC User's Guide, [Instance declarations](https://downloads.haskell.org/ghc/latest/docs/users_guide/exts/instances.html) (`TypeSynonymInstances`: a synonym in an instance head is shorthand for its right-hand side); `lens`, [Control.Lens.Reified](https://hackage.haskell.org/package/lens/docs/Control-Lens-Reified.html).
