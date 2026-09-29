@@ -116,7 +116,7 @@ The skills below exist, but the corresponding page on functional-architecture.or
 - [ ] **Everything as a Value** — draft (reification; functions and Jolie services as first-class values).
 - [ ] **Composition and Closure** — page TODO. Based on Gonzalez's category/functor/scalable-architecture posts, Milewski's *Category Theory for Programmers*, Yorgey's *Typeclassopedia*, and Hughes.
 - [ ] **Airtight Abstractions** — page TODO. Based on King and Gonzalez.
-- [ ] **Architecture as Code** — page TODO. Based on FUNARCH papers (Crem, Crichton) and Gonzalez.
+- [ ] **Architecture as Code** — page TODO. Based on FUNARCH papers (Crem, Crichton), Gonzalez, and the Structurizr documentation.
 - [ ] **Decoupled by Default** — draft, currently **German only**; the skill summarizes it in English (re-check against an English version when published).
 - [ ] **Late Decision Making** — draft; the incidents case study stops mid-way (placeholder image and "…").
 - [ ] **Modularization** — page TODO. Based on Gonzalez, King, and FUNARCH (GHC and DDD).
