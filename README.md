@@ -54,7 +54,7 @@ Each skill is a directory with a `SKILL.md` (when to use it, the procedure, a wo
 | [bidirectional-data-transformations](skills/bidirectional-data-transformations/SKILL.md) | Lenses, isos, prisms: one declaration, both directions | Published (partly TODO) |
 | [embedded-dsl](skills/embedded-dsl/SKILL.md) | Deep and shallow embeddings; interpreters; the cost of DSLs | TODO |
 | [composable-effects](skills/composable-effects/SKILL.md) | Making effects explicit and interchangeable; the ladder of approaches | TODO |
-| [composable-error-handling](skills/composable-error-handling/SKILL.md) | Errors as values; flat short-circuiting; accumulation; layer translation | TODO |
+| [composable-error-handling](skills/composable-error-handling/SKILL.md) | Errors as values; open variants first (one type per error, handled errors leave the type); flat short-circuiting; accumulation; layer translation | TODO |
 | [composable-guis](skills/composable-guis/SKILL.md) | UIs as values; Model-View-Update; components composed by functors | TODO |
 | [property-based-testing](skills/property-based-testing/SKILL.md) | Choosing properties, generators, shrinking, model-based testing | TODO |
 | [formal-verification](skills/formal-verification/SKILL.md) | The ladder of rigor; trusted kernels; certifiers; model checking | TODO |
