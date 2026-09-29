@@ -124,7 +124,7 @@ The skills below exist, but the corresponding page on functional-architecture.or
 
 **Patterns**
 
-- [ ] **Zipper** — short description only; long form TODO. The skill relies on Huet's paper (outside the provided sources).
+- [ ] **Zipper** — short description only; long form TODO. The skill relies on Huet's paper (outside the provided sources) and *Learn You a Haskell*.
 - [ ] **Continuations** — short description is literally "TODO". Based on FUNARCH 2024 (Congame) and Gonzalez.
 - [ ] **Use of functional programming languages** — page TODO.
 - [ ] **Expressive static type systems** — page TODO.
@@ -137,10 +137,10 @@ The skills below exist, but the corresponding page on functional-architecture.or
 - [ ] **Property-based testing** — page TODO (the skill is based on Wlaschin's complete series).
 - [ ] **Formal Verification** — short description is "TODO". Based on FUNARCH 2024/2025 experience reports.
 - [ ] **Denotational Design** — short description only. The skill relies on Conal Elliott's work (outside the provided sources).
-- [ ] **Parse, don't validate** — page TODO (the skill is based on King's post).
-- [ ] **Trees that grow** — short description only. Relies on Najd & Peyton Jones and Perez (FUNARCH 2023).
-- [ ] **Data types à la carte** — short description only. Relies on Swierstra and on object algebras (outside the provided sources).
-- [ ] **Smart constructor** — page TODO (the skill is based on Wlaschin and King).
+- [ ] **Parse, don't validate** — page TODO (the skill is based on King's post, with Parsons and a TypeScript walkthrough).
+- [ ] **Trees that grow** — short description only. Relies on Najd & Peyton Jones, Perez (FUNARCH 2023), and the notes in GHC's `Language.Haskell.Syntax.Extension`.
+- [ ] **Data types à la carte** — short description only. Relies on Swierstra and on object algebras (outside the provided sources), plus Maguire's *Better Data Types à la Carte*.
+- [ ] **Smart constructor** — page TODO (the skill is based on Wlaschin, King, Kowainik's mini-patterns, and Karpov).
 - [ ] **Correctness by Construction** — short description is "TODO".
 
 **Elsewhere on the site**

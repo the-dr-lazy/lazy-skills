@@ -182,6 +182,12 @@ int main() {
 }
 ```
 
+## Pitfalls
+
+- **The injection search is right-biased.** `:<:` only recurses into the right operand of `:+:`, so it cannot find a functor in a sum that is not nested to the right. Maguire: aliases and additions can "completely shuffle around your internal tree structure", and "we must adhere to a strict convention" (this skill's example declares `infixr`). Conventions the compiler does not check are where bugs live.
+- **Index the sum by a list.** Maguire's variant builds the sum from a type-level list of functors (`Summed '[Val, Add, Mul]`), which forces right-nesting by construction. An empty list is a sum over `Void`, unconstructible, so `Either a (Either b Void)` is just `Either a b` with the innermost case always `Left`.
+- **Add the inverse of `inj`.** `outj :: Summed fs a -> Maybe (f a)` is a prism into the sum. It is what lets an interpreter remove a constructor (his story language wants to translate `Interrupt` away and continue with a smaller signature); Swierstra's paper describes this but does not implement it, per Maguire's correction. Test the law that `outj (inj x)` is `Just x` for every functor in the menu (`property-based-testing`).
+
 ## Related skills
 
 `trees-that-grow` (extensibility across compiler phases) · `free-monads` and `algebraic-effect-systems` (coproducts of effect functors) · `embedded-dsl` · `everything-as-a-value` · `composition-and-closure`
@@ -190,4 +196,5 @@ int main() {
 
 - functional-architecture.org, [Data types à la carte](https://functional-architecture.org/data_types_a_la_carte/) (pattern; short description, long form upstream TODO).
 - Further reading (not in the provided source list): Wouter Swierstra, *Data types à la carte*, Journal of Functional Programming 18(4), 2008; Bruno C. d. S. Oliveira and William R. Cook, *Extensibility for the Masses: Practical Extensibility with Object Algebras* (ECOOP 2012); Philip Wadler, *The Expression Problem* (1998).
+- Sandy Maguire, [Better Data Types a la Carte](https://reasonablypolymorphic.com/blog/better-data-types-a-la-carte/) (2016; read from the [blog's source](https://github.com/isovector/reasonablypolymorphic.com/blob/master/site/posts/2016-09-13-better-data-types-a-la-carte.markdown)) — the right-nesting convention behind `:<:`, a type-level-list variant, `outj` for removing constructors, and the round-trip property.
 - Gabriella Gonzalez, [The visitor pattern is essentially the same thing as Church encoding](https://haskellforall.com/2021/01/the-visitor-pattern-is-essentially-same) (2021) — object algebras generalize the visitor.
