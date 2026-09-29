@@ -6,7 +6,7 @@ What to reach for in each language, and the handful of knobs that matter. The co
 
 - **QuickCheck** (Claessen & Hughes) — the original. Type-directed generation through `Arbitrary`; `forAll gen prop` for custom generators; `==>` preconditions; `counterexample`, `label`, `classify`, `cover`/`checkCoverage` to see what was tested; `Fun a b` with the `Fn f` pattern to generate functions; `quickCheckWith stdArgs {maxSuccess = n, maxSize = m}`; `expectFailure` for properties that must fail. Test monadic code with `Test.QuickCheck.Monadic`.
 - **Hedgehog** — generators are explicit values with *integrated shrinking* (shrinks always respect how the value was generated, so invariants of the generator survive shrinking); ranges (`Range.linear`) make the size distribution explicit; built-in state-machine testing.
-- **falsify** (Well-Typed; covered in *The Haskell Unfolder*, episode 4) — internal, sample-tree-based shrinking in the Hypothesis tradition.
+- **falsify** (Well-Typed; covered in *The Haskell Unfolder*, episode 4) — internal, sample-tree-based shrinking in the Hypothesis tradition. Generators are integrated in Hedgehog's sense (`filter even <$> genList` stays even while shrinking) and, unlike Hedgehog's, shrink correctly through monadic bind. `Gen` is deliberately not an `Alternative`, which would rule out infinite data. Version 0.4.0 (the latest changelog entry, dated 2026-07-01) split tasty support into `tasty-falsify` and added `getContext`/`sized`, so a property can vary its behaviour across iterations (for example, widen its ranges as the run proceeds).
 
 ```haskell
 import Test.QuickCheck

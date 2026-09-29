@@ -134,9 +134,9 @@ The skills below exist, but the corresponding page on functional-architecture.or
 - [ ] **Composable Effects** — page TODO (the published FCIS page links to it).
 - [ ] **Composable Error Handling** — page TODO (the published FCIS page links to it).
 - [ ] **Composable GUI libraries** — page TODO.
-- [ ] **Property-based testing** — page TODO (the skill is based on Wlaschin's complete series).
-- [ ] **Formal Verification** — short description is "TODO". Based on FUNARCH 2024/2025 experience reports.
-- [ ] **Denotational Design** — short description only. The skill relies on Conal Elliott's work (outside the provided sources).
+- [ ] **Property-based testing** — page TODO (the skill is based on Wlaschin's complete series, plus Hughes's *How to Specify It!* and falsify's documentation).
+- [ ] **Formal Verification** — short description is "TODO". Based on FUNARCH 2024/2025 experience reports, *Learn TLA+*, and *Functional Programming in Lean*.
+- [ ] **Denotational Design** — short description only. The skill relies on Conal Elliott's work (outside the provided sources); its link to model-based testing comes from Hughes's *How to Specify It!*.
 - [ ] **Parse, don't validate** — page TODO (the skill is based on King's post, with Parsons and a TypeScript walkthrough).
 - [ ] **Trees that grow** — short description only. Relies on Najd & Peyton Jones, Perez (FUNARCH 2023), and the notes in GHC's `Language.Haskell.Syntax.Extension`.
 - [ ] **Data types à la carte** — short description only. Relies on Swierstra and on object algebras (outside the provided sources), plus Maguire's *Better Data Types à la Carte*.

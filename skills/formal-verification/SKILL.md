@@ -20,6 +20,8 @@ Functional architecture makes verification *reachable*: pure functions obey equa
 | Extraction | generate code from the proved artefact | the running code *is* the proved code | Rocq/Coq extraction to OCaml/Haskell |
 | Certification | check each *output* of unverified code with a verified checker | assurance without verifying a fast-moving codebase | translation validation certifiers |
 
+**Scale the rigor to the cost of the bug.** Learn TLA+ frames TLA+ as a formal specification language, "the software equivalent of a blueprint", from which a model checker verifies that a design has no critical bugs. Its opening example is a check-then-act race in a trading algorithm: an owner check before a transfer looks safe, but Alice can trade an item to herself while a parallel trade gives it to Bob, and the checker finds it because it explores every state and timeline. A model also scales by changing a constant (`People == {"alice", "bob", "eve"}`; several items at once). Formal methods are hard when the dangerous bug is "somebody dies"; when it is "customers get really mad and we lose two weeks", the small subset you need is much easier. The guide assumes you are an experienced programmer who knows testing and some math.
+
 ## Architectural moves (from the field)
 
 - **Keep a small trusted kernel.** Factor effects out (free monads, functional core) so the part you reason about is pure; the impure residue is minimal and easy to audit.
@@ -28,14 +30,16 @@ Functional architecture makes verification *reachable*: pure functions obey equa
 - **Run formal methods continuously.** Cardano applies formal specifications, functional architecture, and Haskell together, keeping the specification and the implementation connected as both evolve (FUNARCH 2024).
 - **Model concurrency as data and explore it exhaustively.** Represent processes as state machines (PlusCal-style), combine them as Cartesian products, and check invariants over *every* reachable state.
 - **Test the implementation against the verified model** with property-based testing: the model is the oracle.
+- **Keep the clear version as an executable specification.** A rewrite into accumulator-passing or otherwise faster form is harder to read, so keep the original as the spec of the optimized one. Unit tests work in any language; in a proof assistant such as Lean you can also prove both return the same result for *all* inputs: function extensionality, then induction on the argument the recursion follows. When the induction hypothesis is too weak, generalize the statement over arbitrary initial accumulator values.
 
 ## Procedure
 
 1. **Name the failure you cannot afford** and the property that rules it out.
 2. **Pick the lowest rung that establishes it** with enough confidence; climb only for the parts that need it.
 3. **Isolate the part to verify** behind a pure interface; everything else talks to it through that interface.
-4. **Connect verification to the running code:** extraction, a certifier in the pipeline, or differential tests against the model — never a proof about code nobody runs.
-5. **Run it in CI** so specification, proofs, and implementation cannot drift.
+4. **Test before you prove.** Get the program right with tests, then prove. The Lean book's workflow for termination: write the function `partial`, debug it with tests, replace `partial` with `termination_by`, put each obligation Lean reports in a `have` proved by `sorry`, and once the program is accepted and still passes its tests, prove the obligations. That avoids proving that a buggy program terminates. (`partial` functions cannot be unfolded in proofs, so they stay out of anything you need to reason about.)
+5. **Connect verification to the running code:** extraction, a certifier in the pipeline, or differential tests against the model — never a proof about code nobody runs.
+6. **Run it in CI** so specification, proofs, and implementation cannot drift, and fail the build on provisional proofs. Lean's `sorry` is convenient during development but proves *any* statement, false ones included; proving `3 < 2` can let an out-of-bounds array access survive to run time. Lean warns whenever a proof depends on it.
 
 Done when: each critical property names its rung and artefact (type, property suite, model, proof, certifier), that artefact runs in CI, and the verified part is connected to production code.
 
@@ -196,6 +200,8 @@ int main() {
 ## Sources
 
 - functional-architecture.org, [Formal Verification](https://functional-architecture.org/formal_verification/) (pattern page; upstream TODO).
+- Hillel Wayne, [Learn TLA+](https://learntla.com/) (read from the guide's [repository](https://github.com/hwayne/learntla), default branch: the older PlusCal/Toolbox edition, *Introduction* and *About this guide*) — what TLA+ is for, the trade race found by exhaustive exploration, scaling a model by changing constants, and how much rigor is worth it.
+- David Thrane Christiansen, [Functional Programming in Lean](https://lean-lang.org/functional_programming_in_lean/) (read from the [book's source](https://github.com/leanprover/fp-lean), chapter *Programming, Proving, and Performance*, summary section) — executable specifications proved equal by induction, provisional proofs with `sorry`, the test-first termination workflow, `Fin` for safe indexing.
 - Matthew Sottile, Mohit Tekriwal, [Design and implementation of a verified interpreter for additive manufacturing programs](https://dl.acm.org/doi/10.1145/3677998.3678221) (FUNARCH 2024).
 - James Chapman, Arnaud Bailly, Polina Vinogradova, [Applying Continuous Formal Methods to Cardano](https://dl.acm.org/doi/10.1145/3677998.3678222) (FUNARCH 2024).
 - Jacco Krijnen, Wouter Swierstra, Gabriele Keller, Manuel Chakravarty, Joris Dral, [A Layered Certifying Compiler Architecture](https://dl.acm.org/doi/10.1145/3759163.3760427) (FUNARCH 2025).
