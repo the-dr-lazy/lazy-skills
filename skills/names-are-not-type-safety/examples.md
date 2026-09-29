@@ -418,7 +418,48 @@ oops :: RoleName -> String
 oops = describe -- compiles, and calls a role "a permission"
 ```
 
-With newtypes, each concept gets its own instance:
+An alias instance also overlaps the container's general instance. Without a pragma, every use is an "Overlapping instances" error. With `OVERLAPPING`, generic code over `Multilingual a` stops compiling. With `INCOHERENT`, it compiles, and the answer depends on where the type becomes known:
+
+```haskell
+{-# LANGUAGE FlexibleInstances #-}
+import Data.List.NonEmpty (NonEmpty ((:|)))
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
+
+data Lang = En | De deriving (Eq, Ord, Show)
+
+data Multilingual a = Multilingual {fallback :: a, translations :: Map Lang a}
+
+class Describe a where
+  describe :: a -> String
+
+instance Describe Char where
+  describe c = [c]
+
+instance Describe a => Describe (NonEmpty a) where
+  describe = concatMap describe
+
+instance Describe a => Describe (Multilingual a) where
+  describe m = "translated: " <> describe (fallback m)
+
+type PermissionName = Multilingual (NonEmpty Char)
+
+-- Overlaps the instance above. Without a pragma, `describe p` is an error;
+-- with OVERLAPPING, `describeAll` below is an error; INCOHERENT compiles.
+instance {-# INCOHERENT #-} Describe PermissionName where
+  describe _ = "a permission"
+
+describeAll :: Describe a => [Multilingual a] -> [String]
+describeAll = map describe
+
+main :: IO ()
+main = do
+  let p = Multilingual ('r' :| "ead") Map.empty :: PermissionName
+  print (describe p) -- "a permission"
+  print (describeAll [p]) -- ["translated: read"]: same value, other instance
+```
+
+With newtypes, each concept gets its own instance, and `Multilingual PermissionName` uses the general instance, which calls `PermissionName`'s. Nothing overlaps:
 
 ```haskell
 {-# LANGUAGE DerivingStrategies #-}
